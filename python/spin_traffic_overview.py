@@ -4,6 +4,7 @@ import argparse
 import datetime
 import json
 import time
+import sys
 import paho.mqtt.client as mqtt
 
 # 'flat' representation of flow;
@@ -84,7 +85,7 @@ class Flow:
         else:
             size_out_str = "%db" % size_out
 
-        return "%s:%d  %s:%s  in: %s  out: %s" % (from_val, self.from_port, to_val, self.to_port, size_in_str, size_out_str)
+        return "%s:%d  %s:%s  in: %s  out: %s packets: %d" % (from_val, self.from_port, to_val, self.to_port, size_in_str, size_out_str, self.count_in + self.count_out)
 
         #return ",".join([from_val, to_val,
         #    str(self.from_port),
@@ -194,20 +195,32 @@ def main(args):
             counter += 1
 
         if len(stored_flows) > 0:
+            stored_flows.sort(key=lambda e: e.size_in + e.size_out, reverse=True)
             dt = datetime.datetime.now()
             cur_time = dt.strftime("%Y-%m-%d %H:%M:%S")
-            print("Traffic summary %s - %s:" % (prev_time, cur_time))
+            if not args.quiet:
+                if args.clear_screen:
+                    sys.stdout.write("\033[2J\033[H")
+                print("Traffic summary %s - %s:" % (prev_time, cur_time))
+            for f in stored_flows:
+                if not args.quiet:
+                    if args.show_csv:
+                        print(f.to_csv())
+                    else:
+                        print(f.to_simplified())
+            if args.writecsv:
+                of_name = "%s_%s.csv" % (args.writecsv, dt.strftime("%Y-%m-%d_%H:%M:%S"))
+                with open(of_name, "w") as outfile:
+                    for f in stored_flows:
+                        outfile.write("%s\n" % f.to_csv())
+            if args.writesimplified:
+                of_name = "%s_%s.csv" % (args.writesimplified, dt.strftime("%Y-%m-%d_%H:%M:%S"))
+                with open(of_name, "w") as outfile:
+                    outfile.write("Traffic summary %s - %s:\n" % (prev_time, cur_time))
+                    for f in stored_flows:
+                        outfile.write("%s\n" % f.to_simplified())
+            stored_flows = []
             prev_time = cur_time
-        for f in stored_flows:
-            if args.show_csv:
-                print(f.to_csv())
-            else:
-                print(f.to_simplified())
-        if args.outputfile:
-            of_name = "%s_%s.csv" % (args.outputfile, dt.strftime("%Y-%m-%d_%H:%M:%S"))
-            with open(of_name, "w") as outfile:
-                outfile.write("%s\n" % f.to_csv())
-        stored_flows = []
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -215,8 +228,10 @@ if __name__ == "__main__":
     parser.add_argument('-p', '--mqtt-port', help='Connect to MQTT at the given port (defaults to 1883)', type=int, default=1883)
     parser.add_argument('-i', '--interval', help='Collect and show/store summaries per interval seconds (defaults to 60)', type=int, default=60)
     parser.add_argument('-q', '--quiet', help='Do not print output to stdout', action="store_true")
+    parser.add_argument('-r', '--clear-screen', help='Clear the terminal screen between intervals', action="store_true")
     parser.add_argument('-c', '--show-csv', help='Show full CSV output instead of the simplified overview', action="store_true")
-    parser.add_argument('-o', '--outputfile', help='Save summaries as csv to outputfile-<timestamp>.csv')
+    parser.add_argument('-w', '--writecsv', help='Save summaries as csv to outputfile-<date_time>.csv')
+    parser.add_argument('-o', '--writesimplified', help='Save summaries in simplified format to outputfile-<date_time>.txt')
 
     args = parser.parse_args()
 
