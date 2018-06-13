@@ -11,6 +11,8 @@ local json = require 'json'
 local TRAFFIC_CHANNEL = "SPIN/traffic"
 local HISTORY_SIZE = 600
 
+local profile_manager_m = require 'profile_manager'
+
 posix = require 'posix'
 
 --
@@ -205,7 +207,7 @@ function handler:add_device_seen(mac, name, timestamp)
     device_data['lastseen'] = timestamp
     device_data['name'] = name
     device_data['new'] = true
-    device_data['profile'] = ""
+    device_data['profile'] = self.profile_manager:get_device_profiles(mac) 
     device_data['enforcement'] = ""
     device_data['logging'] = ""
 
@@ -253,6 +255,10 @@ function handler:init(args)
 
     self:read_config(args)
     self:load_templates()
+    
+    self.profile_manager = profile_manager_m.create_profile_manager()
+    self.profile_manager:load_all_profiles()
+    self.profile_manager:load_device_profiles()
 
     -- We will use this list for the fixed url mappings
     self.fixed_handlers = {
@@ -263,7 +269,8 @@ function handler:init(args)
         ["/spin/tcpdump_status"] = self.handle_tcpdump_status,
         ["/spin/tcpdump_start"] = self.handle_tcpdump_start,
         ["/spin/tcpdump_stop"] = self.handle_tcpdump_stop,
-        ["/spin/api/devices"] = self.handle_device_list
+        ["/spin/api/devices"] = self.handle_device_list,
+        ["/spin/api/profiles"] = self.handle_profile_list
     }
 
     local client = mqtt.new()
@@ -467,13 +474,6 @@ function handler:handle_tcpdump_stop(request, response)
     return response
 end
 
-function handler:handle_device_list(request, response)
-    response:set_header("Content-Type", "application/json")
-    response:set_header("Access-Control-Allow-Origin", "*")
-    response.content = json.encode(self.devices_seen)
-    return response
-end
-
 function handler:handle_tcpdump_manage(request, response)
     local device = request.params["device"]
     local dname = get_tcpdump_pname(request, device)
@@ -492,6 +492,24 @@ function handler:handle_tcpdump_manage(request, response)
         return response
     end
     response.content = html
+    return response
+end
+
+function handler:handle_device_list(request, response)
+    response:set_header("Content-Type", "application/json")
+    response:set_header("Access-Control-Allow-Origin", "*")
+    response.content = json.encode(self.devices_seen)
+    return response
+end
+
+function handler:handle_profile_list(request, response)
+    response:set_header("Content-Type", "application/json")
+    response:set_header("Access-Control-Allow-Origin", "*")
+    local profile_list = {}
+    for i,v in pairs(self.profile_manager.profiles) do
+        table.insert(profile_list, v)
+    end
+    response.content = json.encode(profile_list)
     return response
 end
 
