@@ -56,10 +56,8 @@ end
 
 function profile_manager:get_device_profiles(device_mac)
     if self.device_profiles[device_mac] ~= nil then
-        print("[XX] FOUND: " .. device_mac)
         return self.device_profiles[device_mac]
     else
-        print("[XX] NOT FOUND: " .. device_mac)
         print(json.encode(self.device_profiles))
         return {}
     end
