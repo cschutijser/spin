@@ -443,9 +443,9 @@ function handler:handle_device_profiles(request, response, device_mac)
         if request.post_data ~= nil and request.post_data.profile_id ~= nil then
             local status, err = self.profile_manager:set_device_profile(device_mac, request.post_data.profile_id)
             -- persist the new state
-            self.profile_manager:save_device_profiles()
             if status ~= nil then
                 -- all ok, basic 200 response good
+                self.profile_manager:save_device_profiles()
                 return response
             else
                 -- todo: how to convey error?
