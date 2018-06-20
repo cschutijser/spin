@@ -207,6 +207,7 @@ function handler:add_device_seen(mac, name, timestamp)
     device_data['lastSeen'] = timestamp
     device_data['name'] = name
     device_data['new'] = true
+    device_data['mac'] = mac
     device_data['appliedProfiles'] = self.profile_manager:get_device_profiles(mac) 
     device_data['enforcement'] = ""
     device_data['logging'] = ""
@@ -416,16 +417,21 @@ function handler:handle_tcpdump_manage(request, response)
     return response
 end
 
-function handler:handle_device_list(request, response)
+function handler:set_api_headers(response)
     response:set_header("Content-Type", "application/json")
     response:set_header("Access-Control-Allow-Origin", "*")
+    response:set_header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept")
+    response:set_header("Access-Control-Allow-Methods", "GET,POST,HEAD,OPTIONS")
+end
+
+function handler:handle_device_list(request, response)
+    self:set_api_headers(response)
     response.content = json.encode(self.devices_seen)
     return response
 end
 
 function handler:handle_profile_list(request, response)
-    response:set_header("Content-Type", "application/json")
-    response:set_header("Access-Control-Allow-Origin", "*")
+    self:set_api_headers(response)
     local profile_list = {}
     for i,v in pairs(self.profile_manager.profiles) do
         table.insert(profile_list, v)
@@ -435,13 +441,17 @@ function handler:handle_profile_list(request, response)
 end
 
 function handler:handle_device_profiles(request, response, device_mac)
-    response:set_header("Content-Type", "application/json")
-    response:set_header("Access-Control-Allow-Origin", "*")
+    self:set_api_headers(response)
     if request.method == "GET" then
         response.content = json.encode(self.profile_manager:get_device_profiles(device_mac))
     else
         if request.post_data ~= nil and request.post_data.profile_id ~= nil then
-            local status, err = self.profile_manager:set_device_profile(device_mac, request.post_data.profile_id)
+            if self.devices_seen[device_mac] ~= nil then
+                local status, err = self.profile_manager:set_device_profile(device_mac, request.post_data.profile_id)
+            else
+                status = nil
+                err = "Error: unknown device: " .. device_mac
+            end
             -- persist the new state
             if status ~= nil then
                 -- all ok, basic 200 response good
@@ -477,14 +487,14 @@ function handler:init(args)
     -- ONLY valid for the EXACT path identified in this list
     self.fixed_handlers = {
         ["/"] = handler.handle_index,
-        ["/spin"] = self.handle_index,
-        ["/spin/"] = self.handle_index,
-        ["/spin/tcpdump"] = self.handle_tcpdump_manage,
-        ["/spin/tcpdump_status"] = self.handle_tcpdump_status,
-        ["/spin/tcpdump_start"] = self.handle_tcpdump_start,
-        ["/spin/tcpdump_stop"] = self.handle_tcpdump_stop,
-        ["/spin/api/devices"] = self.handle_device_list,
-        ["/spin/api/profiles"] = self.handle_profile_list
+        ["/spin_api"] = self.handle_index,
+        ["/spin_api/"] = self.handle_index,
+        ["/spin_api/tcpdump"] = self.handle_tcpdump_manage,
+        ["/spin_api/tcpdump_status"] = self.handle_tcpdump_status,
+        ["/spin_api/tcpdump_start"] = self.handle_tcpdump_start,
+        ["/spin_api/tcpdump_stop"] = self.handle_tcpdump_stop,
+        ["/spin_api/devices"] = self.handle_device_list,
+        ["/spin_api/profiles"] = self.handle_profile_list
     }
 
     -- Pattern handlers are more flexible than fixed handlers;
