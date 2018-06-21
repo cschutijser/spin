@@ -203,16 +203,22 @@ function handler:read_config(args)
 end
 
 function handler:add_device_seen(mac, name, timestamp)
-    local device_data = {}
-    device_data['lastSeen'] = timestamp
-    device_data['name'] = name
-    device_data['new'] = true
-    device_data['mac'] = mac
-    device_data['appliedProfiles'] = self.profile_manager:get_device_profiles(mac) 
-    device_data['enforcement'] = ""
-    device_data['logging'] = ""
+    if self.devices_seen[mac] ~= nil then
+        self.devices_seen[mac]['lastSeen'] = timestamp
+        self.devices_seen[mac]['name'] = name
+        self.devices_seen[mac]['appliedProfiles'] = self.profile_manager:get_device_profiles(mac) 
+    else
+        local device_data = {}
+        device_data['lastSeen'] = timestamp
+        device_data['name'] = name
+        device_data['new'] = true
+        device_data['mac'] = mac
+        device_data['appliedProfiles'] = self.profile_manager:get_device_profiles(mac) 
+        device_data['enforcement'] = ""
+        device_data['logging'] = ""
 
-    self.devices_seen[mac] = device_data
+        self.devices_seen[mac] = device_data
+    end
 end
 
 function handler:handle_traffic_message(data, orig_data)
@@ -475,6 +481,19 @@ function handler:handle_device_profiles(request, response, device_mac)
     return response
 end
 
+function handler:handle_toggle_new(request, response, device_mac)
+    self:set_api_headers(response)
+    if request.method == "POST" then
+        if self.devices_seen[device_mac] ~= nil then
+            self.devices_seen[device_mac].new = not self.devices_seen[device_mac].new
+        else
+            response:set_status(400, "Bad request")
+            response.content = json.encode({status = 400, error = "Unknown device: " .. device_mac})
+        end
+    end
+    return response
+end
+
 function handler:init(args)
     -- we keep track of active downloads by having a dict of
     -- "<client_ip>-<device mac>" -> <bytes_sent>
@@ -508,9 +527,12 @@ function handler:init(args)
     -- Capture values are passed to the handler as extra arguments
     -- The maximum number of capture fields is 4
     self.pattern_handlers = {
-        { pattern = "/spin_api/devices/(%x%x:%x%x:%x%x:%x%x:%x%x:%x%x)/appliedProfiles",
+        { pattern = "/spin_api/devices/(%x%x:%x%x:%x%x:%x%x:%x%x:%x%x)/appliedProfiles/?$",
           handler = self.handle_device_profiles
         },
+        { pattern = "/spin_api/devices/(%x%x:%x%x:%x%x:%x%x:%x%x:%x%x)/toggleNew/?$",
+          handler = self.handle_toggle_new
+        }
     }
 
     local client = mqtt.new()
