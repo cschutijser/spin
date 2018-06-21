@@ -457,8 +457,9 @@ function handler:handle_device_profiles(request, response, device_mac)
         response.content = json.encode(self.profile_manager:get_device_profiles(device_mac))
     else
         if request.post_data ~= nil and request.post_data.profile_id ~= nil then
+            local status = nil
             if self.devices_seen[device_mac] ~= nil then
-                local status, err = self.profile_manager:set_device_profile(device_mac, request.post_data.profile_id)
+                status, err = self.profile_manager:set_device_profile(device_mac, request.post_data.profile_id)
             else
                 status = nil
                 err = "Error: unknown device: " .. device_mac
