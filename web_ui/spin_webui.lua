@@ -220,25 +220,26 @@ function handler:handle_traffic_message(data, orig_data)
     for i, d in ipairs(data.flows) do
         local mac = nil
         local ips = nil
+        local name = nil
         if d.from ~= nil and d.from.mac ~= nil then
+            name = d.from.name
             mac = d.from.mac
             ips = d.from.ips
         elseif d.to ~= nil and d.to.mac ~= nil then
+            name = d.to.name
             mac = d.to.mac
             ips = d.to.ips
         end
 
         if mac ~= nil then
-            local name = nil
-            -- If we have a known name, use that
-            if d.name ~= nil then
-                name = d.name
-            -- Otherwise, use the first ip address we saw
-            elseif ips ~= nil and table.getn(ips) > 0 then
-                name = ips[1]
-            -- to be sure we have *something* , fall back to mac
-            else
-                d.name = mac
+            -- If we don't have a name yet, use an IP address
+            if name == nil then
+              if ips ~= nil and table.getn(ips) > 0 then
+                  name = ips[1]
+              -- to be sure we have *something* , fall back to mac
+              else
+                  d.name = mac
+              end
             end
             -- gather additional info, if available
             self:add_device_seen(mac, name, os.time())
