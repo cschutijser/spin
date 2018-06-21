@@ -503,7 +503,7 @@ function handler:init(args)
     -- Capture values are passed to the handler as extra arguments
     -- The maximum number of capture fields is 4
     self.pattern_handlers = {
-        { pattern = "/spin/api/devices/(%x%x:%x%x:%x%x:%x%x:%x%x:%x%x)/appliedProfiles",
+        { pattern = "/spin_api/devices/(%x%x:%x%x:%x%x:%x%x:%x%x:%x%x)/appliedProfiles",
           handler = self.handle_device_profiles
         },
     }
