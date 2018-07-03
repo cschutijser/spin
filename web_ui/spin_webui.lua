@@ -527,7 +527,7 @@ function handler:handle_notification_list(request, response)
 end
 
 function handler:handle_notification_delete(request, response, notification_id)
-    print(notification_id)
+    self:set_api_headers(response)
     if request.method == "POST" then
         self:delete_notification(tonumber(notification_id))
     else
