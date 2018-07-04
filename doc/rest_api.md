@@ -16,20 +16,24 @@ For the endpoints that accept content parameters, they can be sent as either JSO
 
 ### /spin_api/devices
 
-Method(s): GET
-URL Parameters: None
-Content Parameters: None
+**Method(s)**: GET
+
+**URL Parameters**: None
+
+**Content Parameters**: None
+
 
 Returns a JSON dictionary containing the devices SPIN has seen since its startup, and some information about the devices.
 
 The dictionary is indexed by the MAC address of the device, and each entry is a dictionary with the following values:
-* appliedProfiles: a list of profile identifiers that are currently set for this device, see /spin_api/profiles. Note that currently, only 1 profile can be set
-* enforcement: currently unused
-* lastSeen: a UNIX timestamp (seconds since epoch) of when the device was last active (either sent or received data)
-* logging: currently unused
-* mac: the MAC address of the device
-* name: the name of the device. If the user has set a name, this name is shown. Otherwise, if the device has a name through DHCP, that name is shown. If none of those are true, the first IP address of this device that was seen is used.
-* new: If no profile was set for this device yet, this value is set to true. False otherwise.
+
+* **appliedProfiles**: a list of profile identifiers that are currently set for this device, see /spin_api/profiles. Note that currently, only 1 profile can be set
+* **enforcement**: currently unused
+* **lastSeen**: a UNIX timestamp (seconds since epoch) of when the device was last active (either sent or received data)
+* **logging**: currently unused
+* **mac**: the MAC address of the device
+* **name**: the name of the device. If the user has set a name, this name is shown. Otherwise, if the device has a name through DHCP, that name is shown. If none of those are true, the first IP address of this device that was seen is used.
+* **new**: If no profile was set for this device yet, this value is set to true. False otherwise.
 
 #### Example response
 
@@ -60,10 +64,12 @@ The dictionary is indexed by the MAC address of the device, and each entry is a 
 
 ### /spin_api/devices/\[mac-address\]/appliedProfiles
 
-Method(s): GET, POST
-URL Parameters:
+**Method(s)**: GET, POST
+
+**URL Parameters**:
   * mac-address: The MAC address of the device, of the form aa:bb:cc:dd:ee:ff
-Content Parameters \[POST only\]:
+
+**Content Parameters \[POST only\]**:
   * profile_id (string): The profile to set
 
 For GET, returns a list of the device profiles identifiers that were set for this device. Note that currently, only 1 profile can be set.
@@ -80,18 +86,23 @@ For POST, sets the given profile for the given device.
 
 ### /spin_api/devices/\[mac-address\]/toggleNew
 
-Method(s): POST
-URL Parameters:
+**Method(s)**: POST
+
+**URL Parameters**:
   * mac-address: The MAC address of the device, of the form aa:bb:cc:dd:ee:ff
-Content Parameters: None
+
+**Content Parameters**: None
 
 Toggles the 'new' status of the device.
 
 ### /spin_api/notifications
 
-Method(s): GET
-URL Parameters: None
-Content Parameters: None
+**Method(s)**: GET
+
+**URL Parameters**: None
+
+**Content Parameters**: None
+
 
 Returns a list of notifications from SPIN to the user, in the form of a list of dictionaries. The dictionaries contain the following fields:
 
@@ -112,9 +123,11 @@ Returns a list of notifications from SPIN to the user, in the form of a list of 
 
 ### /spin_api/notifications/create
 
-Method(s): POST
-URL Parameters: None
-Content Parameters:
+**Method(s)**: POST
+
+**URL Parameters**: None
+
+**Content Parameters**:
   * message (string): A message for the user
 
 Adds the given message to the list of notifications for the user
@@ -125,18 +138,22 @@ Adds the given message to the list of notifications for the user
 
 ### /spin_api/notifications/\[integer\]/delete
 
-Method(s): POST
-URL Parameters: notification identifier (integer)
-Content Parameters: None
+**Method(s)**: POST
+
+**URL Parameters**: notification identifier (integer)
+
+**Content Parameters**: None
 
 Deletes the notification with the given identifier
 
 
 ### /spin_api/profiles
 
-Method(s): GET
-URL Parameters: None
-Content Parameters: None
+**Method(s)**: GET
+
+**URL Parameters**: None
+
+**Content Parameters**: None
 
 Returns the available profiles for devices, in the form of a list of dictionaries. The dictionaries contain the following fields:
 
@@ -169,7 +186,7 @@ Returns the available profiles for devices, in the form of a list of dictionarie
 
 ### /spin_api/tcpdump
 
-URL Parameter: device (mac address)
+**URL Parameter**: device (mac address)
 
 Management page of the pcap capture format tool.
 
@@ -182,16 +199,18 @@ The 'device' parameter is of the form 'aa:bb:cc:dd:ee:ff'.
 
 ### /spin_api/tcpdump_status
 
-URL Parameter: device (mac address)
+**URL Parameter**: device (mac address)
 
 Page chunk showing the status (total bytes sent) of the pcap capture progress.
 
 ### /spin_api/tcpdump_start
 
-URL Parameter: device (mac address)
+**URL Parameter**: device (mac address)
 
 Starts the tcpdump managed by the /spin_api/tcpdump page
 
 ### /spin_api/tcpdump_stop
+
+**URL Parameter**: device (mac address)
 
 Stops the tcpdump managed by the /spin_api/tcpdump page

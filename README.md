@@ -139,13 +139,13 @@ The daemon will also listen for configuration commands in the topic SPIN/command
 
 ## Kernel module to userspace programs
 
-For the communication protocol between a user-space program and the kernel module, see [docs/netlink_protocol.md](docs/netlink_protocol.md).
+For the communication protocol between a user-space program and the kernel module, see [doc/netlink_protocol.md](doc/netlink_protocol.md).
 
 ## MQTT messages
 
-For the channels and mqtt message formats, see [docs/mqtt_protocol.md](docs/mqtt_protocol.md)
+For the channels and mqtt message formats, see [doc/mqtt_protocol.md](doc/mqtt_protocol.md)
 
 ## REST API
 
-For the REST API description, see [docs/rest_api.md](docs/rest_api.md)
+For the REST API description, see [doc/rest_api.md](doc/rest_api.md)
 
