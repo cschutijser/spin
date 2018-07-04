@@ -2,13 +2,34 @@
 
 The spin_webui daemon offers some web pages, and a REST API that can read and control several aspects of the SPIN software.
 
+- [JSON API Endpoints](#json-api-endpoints)
+  - [/spin_api/devices](#spin_apidevices)
+    - [Example response](#example-response)
+  - [/spin_api/devices/\[mac-address\]/appliedProfiles](#spin_apidevicesmac-addressappliedprofiles)
+    - [Example request content (POST):](#example-request-content-post)
+    - [Example response (GET)](#example-response-get)
+  - [/spin_api/devices/\[mac-address\]/toggleNew](#spin_apidevicesmac-addresstogglenew)
+  - [/spin_api/notifications](#spin_apinotifications)
+    - [Example response](#example-response)
+  - [/spin_api/notifications/create](#spin_apinotificationscreate)
+    - [Example request content:](#example-request-content)
+  - [/spin_api/notifications/\[integer\]/delete](#spin_apinotificationsintegerdelete)
+  - [/spin_api/profiles](#spin_apiprofiles)
+    - [Example response](#example-response)
+- [Other URLs](#other-urls)
+  - [/spin_api/tcpdump](#spin_apitcpdump)
+  - [/spin_api/tcpdump_status](#spin_apitcpdump_status)
+  - [/spin_api/tcpdump_start](#spin_apitcpdump_start)
+  - [/spin_api/tcpdump_stop](#spin_apitcpdump_stop)
+
+
 ## JSON API Endpoints
 
 All JSON API endpoints return either a direct JSON data structure as a response, or an error in the form
 
     {
-      "status": \[HTTP status code\] (integer)
-      "error": \[Error message\] (string)
+      "status": [HTTP status code] (integer)
+      "error": [Error message] (string)
     }
 
 For the endpoints that accept content parameters, they can be sent as either JSON (Content-Type application/json) or x-www-form-urlencoded (Content-Type application/x-www-form-urlencoded).
