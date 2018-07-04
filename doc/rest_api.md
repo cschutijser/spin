@@ -6,10 +6,10 @@ The spin_webui daemon offers some web pages, and a REST API that can read and co
 
 All JSON API endpoints return either a direct JSON data structure as a response, or an error in the form
 
-{
-  "status": \[HTTP status code\] (integer)
-  "error": \[Error message\] (string)
-}
+    {
+      "status": \[HTTP status code\] (integer)
+      "error": \[Error message\] (string)
+    }
 
 For the endpoints that accept content parameters, they can be sent as either JSON (Content-Type application/json) or x-www-form-urlencoded (Content-Type application/x-www-form-urlencoded).
 
