@@ -204,6 +204,7 @@ end
 
 function handler:add_device_seen(mac, name, timestamp)
     if self.devices_seen[mac] ~= nil then
+        print("[XX] update device: " .. name .. " with timestamp " .. timestamp)
         self.devices_seen[mac]['lastSeen'] = timestamp
         self.devices_seen[mac]['name'] = name
         self.devices_seen[mac]['appliedProfiles'] = self.profile_manager:get_device_profiles(mac) 
