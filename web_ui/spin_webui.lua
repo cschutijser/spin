@@ -204,7 +204,6 @@ end
 
 function handler:add_device_seen(mac, name, timestamp)
     if self.devices_seen[mac] ~= nil then
-        print("[XX] update device: " .. name .. " with timestamp " .. timestamp)
         self.devices_seen[mac]['lastSeen'] = timestamp
         self.devices_seen[mac]['name'] = name
         self.devices_seen[mac]['appliedProfiles'] = self.profile_manager:get_device_profiles(mac) 
@@ -221,8 +220,8 @@ function handler:add_device_seen(mac, name, timestamp)
         self.devices_seen[mac] = device_data
 
         -- this device is new, so send a notification
-        local notification_txt = "New device on network ("..name..")! Please set a profile"
-        self:create_notification(notification_txt)
+        local notification_txt = "New device on network! Please set a profile"
+        self:create_notification(notification_txt, mac, name)
     end
 end
 
@@ -502,12 +501,18 @@ end
 
 -- TODO: move to own module?
 -- (down to TODO_MOVE_ENDS_HERE)
-function handler:create_notification(text)
+function handler:create_notification(text, device_mac, device_name)
     local new_notification = {}
     new_notification['id'] = self.notification_counter
     self.notification_counter = self.notification_counter + 1
     new_notification['timestamp'] = os.time()
     new_notification['message'] = text
+    if device_mac ~= nil then
+        new_notification['deviceMac'] = device_mac
+    end
+    if device_name ~= nil then
+        new_notification['deviceName'] = device_name
+    end
     table.insert(self.notifications, new_notification)
 end
 
