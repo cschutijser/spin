@@ -57,11 +57,15 @@ function profile_manager:load_all_profiles()
         if f:endswith(".json") then
             local fr, err = mt_io.file_reader(self.profile_directory .. "/" .. f)
             if fr ~= nil then
-                local profile = json.decode(fr:read_lines_single_str())
-                if profile.id ~= nil then
-                    self.profiles[profile.id] = profile
+                local success, profile = pcall(json.decode, fr:read_lines_single_str())
+                if success and profile then
+                  if profile.id ~= nil then
+                      self.profiles[profile.id] = profile
+                  else
+                      print("[XX] error: profile has no ID, not a profile? " .. f)
+                  end
                 else
-                    print("[XX] error: profile has no ID, not a profile? " .. f)
+                  print("[XX] error reading profile from " .. f .. ": " .. profile)
                 end
             else
                 print("[XX] error: " .. err)
@@ -184,7 +188,7 @@ function profile_manager:apply_device_profile_v6(device_mac, rules)
     print("[XX] device profile rules applied (IPv6)")
 end
 
-function profile_manager:remove_device_profile(device_mac)
+function profile_manager:remove_device_profile_helper(device_mac, save_command, restore_command)
     -- remove any rules that have the mac address in them;
     -- since in theory the profile may have changed (or this
     -- software restarted), we don't delete them based on the
@@ -192,7 +196,7 @@ function profile_manager:remove_device_profile(device_mac)
     local to_remove = "SPIN%-" .. device_mac
     local removal_count = 0
 
-    local s, err = mt_io.subprocess("iptables-save", {}, 0, true)
+    local s, err = mt_io.subprocess(save_command, {}, 0, true)
     if s == nil then
         return nil, err
     end
@@ -211,7 +215,7 @@ function profile_manager:remove_device_profile(device_mac)
     -- no rules left, do not reload the firewall rules
     print("[XX] Becomes " .. table.getn(lines) .. " new lines")
     if table.getn(newlines) > 0 then
-        local sr, err = mt_io.subprocess("iptables-restore", {}, 0, false, false, true)
+        local sr, err = mt_io.subprocess(restore_command, {}, 0, false, false, true)
         if sr == nil then
             return nil, err
         else
@@ -223,6 +227,11 @@ function profile_manager:remove_device_profile(device_mac)
     end
 
     return removal_count
+end
+
+function profile_manager:remove_device_profile(device_mac)
+    return self:remove_device_profile_helper(device_mac, "iptables-save", "iptables-restore") +
+           self:remove_device_profile_helper(device_mac, "ip6tables-save", "ip6tables-restore")
 end
 
 return _M
