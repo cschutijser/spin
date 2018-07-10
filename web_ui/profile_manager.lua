@@ -99,10 +99,15 @@ function profile_manager:set_device_profile(device_mac, profile_id)
         self.device_profiles[device_mac] = { profile_id }
 
         self:remove_device_profile(device_mac)
-        if self.profiles[profile_id]["rules"] ~= nil then
-          self:apply_device_profile(device_mac, self.profiles[profile_id]["rules"])
+        if self.profiles[profile_id]["rules_v4"] ~= nil then
+          self:apply_device_profile_v4(device_mac, self.profiles[profile_id]["rules_v4"])
         else
-          print("[XX] no rules defined in profile")
+          print("[XX] no IPv4 rules defined in profile")
+        end
+        if self.profiles[profile_id]["rules_v6"] ~= nil then
+          self:apply_device_profile_v6(device_mac, self.profiles[profile_id]["rules_v6"])
+        else
+          print("[XX] no IPv4 rules defined in profile")
         end
     else
         return nil, "Error: unknown profile: " .. profile_id
@@ -119,9 +124,25 @@ function profile_manager:load_device_profiles()
 
     for line in fr:read_line_iterator(true) do
         local tokens = {}
+        print("[XX] line: '" .. line .. "'")
         for token in line:gmatch("%S+") do table.insert(tokens, token) end
         if table.getn(tokens) >= 2 then
             local device = table.remove(tokens, 1)
+            -- apply it immediately
+            self:remove_device_profile(device)
+            for _,t in pairs(tokens) do
+                local profile = self.profiles[t]
+                if profile and profile.rules_v4 then
+                    self:apply_device_profile_v4(device, profile.rules_v4)
+                else
+                    print("[XX] no profile or no rules: " .. t)
+                end
+                if profile and profile.rules_v6 then
+                    self:apply_device_profile_v6(device, profile.rules_v6)
+                else
+                    print("[XX] no profile or no rules: " .. t)
+                end
+            end
             self.device_profiles[device] = tokens
         end
     end
@@ -129,7 +150,7 @@ function profile_manager:load_device_profiles()
     return result
 end
 
-function profile_manager:apply_device_profile(device_mac, rules)
+function profile_manager:apply_device_profile_v4(device_mac, rules)
     -- the list of rules is interpreted in order,
     -- and the following prefix is user:
     -- iptables -I FORWARD -m mac --mac-source <mac> -m comment --comment "SPIN-<mac>"
@@ -138,15 +159,29 @@ function profile_manager:apply_device_profile(device_mac, rules)
     print(table.getn(rules))
     -- hmmz, this is not atomic...
     for i,r in pairs(rules) do
-        print("YOYOYO")
-        print(i)
-        print(base_rule .. r)
         local cmd, args = shlex_split(base_rule .. r)
         local s, err = mt_io.subprocess(cmd, args)
         if s == nil then print("[XX] error starting subp: " .. cmd .. ": " .. err) end
         s:close()
     end
-    print("[XX] device profile rules applied")
+    print("[XX] device profile rules applied (IPv6)")
+end
+
+function profile_manager:apply_device_profile_v6(device_mac, rules)
+    -- the list of rules is interpreted in order,
+    -- and the following prefix is user:
+    -- iptables -I FORWARD -m mac --mac-source <mac> -m comment --comment "SPIN-<mac>"
+    local base_rule = "ip6tables -I FORWARD -m mac --mac-source " .. device_mac .. " -m comment --comment \"SPIN-" .. device_mac .. "\" "
+    print("[XX] apply device profile: ")
+    print(table.getn(rules))
+    -- hmmz, this is not atomic...
+    for i,r in pairs(rules) do
+        local cmd, args = shlex_split(base_rule .. r)
+        local s, err = mt_io.subprocess(cmd, args)
+        if s == nil then print("[XX] error starting subp: " .. cmd .. ": " .. err) end
+        s:close()
+    end
+    print("[XX] device profile rules applied (IPv6)")
 end
 
 function profile_manager:remove_device_profile(device_mac)

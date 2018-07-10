@@ -626,20 +626,22 @@ function handler:init(args)
 
     client.ON_MESSAGE = function(mid, topic, payload)
         --print("[XX] message for you, sir!")
-        local pd = json.decode(payload)
-        if topic == TRAFFIC_CHANNEL then
-            if pd["command"] and pd["command"] == "traffic" then
-                h:handle_traffic_message(pd["result"], payload)
-            end
-        elseif handle_incidents and topic == INCIDENT_CHANNEL then
-            if pd["incident"] == nil then
-                print("Error: no incident data found in " .. payload)
-                print("Incident report ignored")
-            else
-                local incident = pd["incident"]
-                local ts = incident["incident_timestamp"]
-                for i=ts-5,ts+5 do
-                    if handle_incident_report(incident, i) then break end
+        local success, pd = pcall(json.decode, payload)
+        if success and pd then
+            if topic == TRAFFIC_CHANNEL then
+                if pd["command"] and pd["command"] == "traffic" then
+                    h:handle_traffic_message(pd["result"], payload)
+                end
+            elseif handle_incidents and topic == INCIDENT_CHANNEL then
+                if pd["incident"] == nil then
+                    print("Error: no incident data found in " .. payload)
+                    print("Incident report ignored")
+                else
+                    local incident = pd["incident"]
+                    local ts = incident["incident_timestamp"]
+                    for i=ts-5,ts+5 do
+                        if handle_incident_report(incident, i) then break end
+                    end
                 end
             end
         end
