@@ -446,7 +446,7 @@ function handler:handle_configuration(request, response)
         if fr ~= nil then
           response.content = fr:read_lines_single_str()
         else
-          if err ~= nil then printf("[XX] error: " .. err) end
+          if err ~= nil then print("[XX] error: " .. err) end
           -- we should put the error in here if it is not filenotfound
           response.content = "{}"
         end
