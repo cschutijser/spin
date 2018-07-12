@@ -461,9 +461,19 @@ function handler:handle_device_profiles(request, response, device_mac)
         response.content = json.encode(self.profile_manager:get_device_profiles(device_mac))
     else
         if request.post_data ~= nil and request.post_data.profile_id ~= nil then
+            local profile_id = request.post_data.profile_id
             local status = nil
             if self.devices_seen[device_mac] ~= nil then
                 status, err = self.profile_manager:set_device_profile(device_mac, request.post_data.profile_id)
+                local device_name = self.devices_seen[device_mac].name
+                local profile_name = self.profile_manager.profiles[profile_id]
+                if status then
+                  local notification_txt = "Profile set to " .. profile_name)
+                  self:create_notification(notification_txt, device_mac, device_name)
+                else
+                  local notification_txt = "Error setting device profile: " .. err
+                  self:create_notification(notification_txt, device_mac, device_name)
+                end
             else
                 status = nil
                 err = "Error: unknown device: " .. device_mac
