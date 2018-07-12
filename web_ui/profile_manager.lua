@@ -201,6 +201,7 @@ function profile_manager:remove_device_profile_helper(device_mac, save_command, 
         return nil, err
     end
     local lines = s:read_lines(false, 5000)
+    s:close()
     print("[XX] GOT " .. table.getn(lines) .. " original lines")
     local newlines = {}
     for i,l in pairs(lines) do
