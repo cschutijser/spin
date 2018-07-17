@@ -440,6 +440,7 @@ function handler:set_api_headers(response)
 end
 
 function handler:handle_configuration(request, response)
+    self:set_api_headers(response)
     if request.method == "GET" then
         -- read the config, we don't use it ourselves just yet
         local fr, err = mt_io.file_reader("/etc/spin/spin_webui.conf")
